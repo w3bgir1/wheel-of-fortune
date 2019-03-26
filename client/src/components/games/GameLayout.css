@@ -1,0 +1,34 @@
+.game__answerLetters {
+    display: inline-block;
+    text-align: center;
+    border: 1px solid #3498db;
+    padding: 1em;
+    width: 1em;
+}
+
+.game__answerLetters--empty {
+    border: 1px solid transparent;
+}
+
+.game__playerOne img, 
+.game__playerTwo img{
+    border-radius: 200px;
+    width: 100px;
+}
+
+.game__char {
+    display: inline-block;
+    text-align: center;
+    border: 1px solid #3498db;
+    padding: 1em;
+    width: 1em;
+}
+
+.game__alphabet {
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+}
