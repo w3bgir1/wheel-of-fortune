@@ -81,7 +81,8 @@ export default class GameController {
       question: data.question,
       answer: data.answer,
       template: data.template,
-      alphabet: alph
+      alphabet: alph,
+      round: 1
     }).save();
 
     await Player.create({
@@ -134,7 +135,7 @@ export default class GameController {
   async updateGame(
     @CurrentUser() user: User,
     @Param("id") gameId: number,
-    @Body() update: { switcher: boolean; template: string; alphabet: string[] }
+    @Body() update: { switcher: boolean; template: string; alphabet: string[]; round: number }
   ) {
     const game = await Game.findOneById(gameId);
     //console.log(game)
@@ -163,12 +164,22 @@ export default class GameController {
     const winner = calculateWinner(update.template, game.answer);
     if (winner && player.symbol === game.turn) {
       game.winner = player.symbol;
-      game.status = "finished";
-    }
+      game.round++;
+      const data = await getQuestion();
 
-    console.log(update.switcher, update.template);
-    game.template = update.template;
-    game.alphabet = update.alphabet;
+      game.question = data.question;
+      game.answer = data.answer;
+      game.alphabet = alph;
+      game.template = data.template;
+      await game.save();
+      io.emit("action", {
+        type: "UPDATE_GAME",
+        payload: game
+      });
+
+    } else {
+      game.template = update.template;
+      game.alphabet = update.alphabet;
     await game.save();
 
     io.emit("action", {
@@ -177,6 +188,9 @@ export default class GameController {
     });
 
     return game;
+    }
+    return game
+    
   }
 
   @Authorized()

@@ -7,6 +7,7 @@ import {
   OneToMany,
   ManyToOne
 } from "typeorm";
+import { IsNumber } from "class-validator";
 import User from "../users/entity";
 
 export type Symbol = "x" | "o";
@@ -38,6 +39,10 @@ export class Game extends BaseEntity {
 
   @Column({ type: "simple-array" })
   alphabet: string[];
+
+  @IsNumber()
+  @Column()
+  round: number
 
   // @Column(number', {default: 1})
   // round: Number

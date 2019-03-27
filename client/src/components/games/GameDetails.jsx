@@ -82,7 +82,6 @@ class GameDetails extends PureComponent {
           <GameLayout
             data={this.props.game}
             users={this.props.users}
-            alphabet={this.props.game.alphabet}
             selectChar={this.checkIfAnswerContainsLetter}
             checkTheWord={this.checkTheWord}
           />

@@ -39,7 +39,7 @@ export default function GameLayout(props) {
             <span onClick={props.checkTheWord} className="game__btn--know">I know the answer!</span>
       </div>
       <div className="game__alphabet" onClick={props.selectChar}>
-        {props.alphabet.map(char => {
+        {props.data.alphabet.map(char => {
           return (
             <span className="game__char" key={char}>
               {char}
