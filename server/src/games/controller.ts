@@ -18,17 +18,45 @@ import { calculateWinner } from "./logic";
 import { io } from "../index";
 import * as request from "superagent";
 
-const alph = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+const alph = [
+  "A",
+  "B",
+  "C",
+  "D",
+  "E",
+  "F",
+  "G",
+  "H",
+  "I",
+  "J",
+  "K",
+  "L",
+  "M",
+  "N",
+  "O",
+  "P",
+  "Q",
+  "R",
+  "S",
+  "T",
+  "U",
+  "V",
+  "W",
+  "X",
+  "Y",
+  "Z"
+];
 
 const getQuestion = (): any => {
   return request
-    .get(
-      `https://opentdb.com/api.php?amount=1&difficulty=easy&type=multiple`
-    )
+    .get(`https://opentdb.com/api.php?amount=1&difficulty=easy&type=multiple`)
     .then(result => {
       const answ = result.body.results[0].correct_answer;
       if (/^[a-zA-Z\s]+$/.test(answ) && answ.length < 13) {
-        let temp = answ.split("").map(char => (char === " " ? " " : "_")).join('');
+        let temp = answ
+          .split("")
+          .map(char => (char === " " ? " " : "_"))
+          .join("");
         return {
           question: result.body.results[0].question,
           answer: result.body.results[0].correct_answer.toUpperCase(),
@@ -47,9 +75,8 @@ export default class GameController {
   @Post("/games")
   @HttpCode(201)
   async createGame(@CurrentUser() user: User) {
+    const data = await getQuestion();
 
-    const data = await getQuestion()
-     
     const entity = await Game.create({
       question: data.question,
       answer: data.answer,
@@ -107,7 +134,7 @@ export default class GameController {
   async updateGame(
     @CurrentUser() user: User,
     @Param("id") gameId: number,
-    @Body() update: { switcher: boolean; template: string; alphabet: string[]}
+    @Body() update: { switcher: boolean; template: string; alphabet: string[] }
   ) {
     const game = await Game.findOneById(gameId);
     //console.log(game)
@@ -117,33 +144,31 @@ export default class GameController {
     //console.log(player)
 
     if (!player) {
-
-      throw new ForbiddenError(`You are not part of this game`)};
+      throw new ForbiddenError(`You are not part of this game`);
+    }
     if (game.status !== "started") {
       throw new BadRequestError(`The game is not started yet`);
     }
 
     if (player.symbol !== game.turn) {
-
       throw new BadRequestError(`It's not your turn`);
     }
 
     if (update.switcher) {
       game.turn = player.symbol === "x" ? "o" : "x";
     } else {
-      game.turn = player.symbol 
+      game.turn = player.symbol;
     }
-      
+
     const winner = calculateWinner(update.template, game.answer);
     if (winner && player.symbol === game.turn) {
       game.winner = player.symbol;
       game.status = "finished";
     }
 
-
-    console.log(update.switcher, update.template)
-    game.template = update.template
-    game.alphabet = update.alphabet
+    console.log(update.switcher, update.template);
+    game.template = update.template;
+    game.alphabet = update.alphabet;
     await game.save();
 
     io.emit("action", {

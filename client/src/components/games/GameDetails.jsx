@@ -9,7 +9,6 @@ import "./GameDetails.css";
 import GameLayout from "./GameLayout";
 
 class GameDetails extends PureComponent {
-
   componentWillMount() {
     if (this.props.authenticated) {
       if (this.props.game === null) this.props.getGames();
@@ -19,31 +18,27 @@ class GameDetails extends PureComponent {
 
   joinGame = () => this.props.joinGame(this.props.game.id);
 
-
-
-  checkIfAnswerContainsLetter = (event) => {
+  checkIfAnswerContainsLetter = event => {
     const { game, updateGame } = this.props;
     const letter = event.target.textContent;
-    let newTemp = game.template.split('')
-    const newAphabet = this.props.game.alphabet.filter(el => el !== letter)
+    let newTemp = game.template.split("");
+    const newAphabet = this.props.game.alphabet.filter(el => el !== letter);
     if (this.props.game.answer.includes(letter)) {
-      const indexes = this.props.game.answer.split('').reduce((acc, el, i) => {
+      const indexes = this.props.game.answer.split("").reduce((acc, el, i) => {
         if (el === letter) {
-          return acc.concat(i)
-        } 
-        return acc
-      }, [])
-    
+          return acc.concat(i);
+        }
+        return acc;
+      }, []);
+
       indexes.map(i => {
-        newTemp[i] = letter
-      })
-      updateGame(game.id, false, newTemp.join(''), newAphabet)
+        newTemp[i] = letter;
+      });
+      updateGame(game.id, false, newTemp.join(""), newAphabet);
     } else {
-      updateGame(game.id, true, newTemp.join(''), newAphabet)
+      updateGame(game.id, true, newTemp.join(""), newAphabet);
     }
-  }
-
-
+  };
 
   render() {
     const { game, users, authenticated, userId } = this.props;
@@ -95,14 +90,14 @@ const mapStateToProps = (state, props) => ({
   authenticated: state.currentUser !== null,
   userId: state.currentUser && userId(state.currentUser.jwt),
   game: state.games && state.games[props.match.params.id],
-  users: state.users,
+  users: state.users
 });
 
 const mapDispatchToProps = {
   getGames,
   getUsers,
   joinGame,
-  updateGame,
+  updateGame
 };
 
 export default connect(
