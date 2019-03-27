@@ -1,7 +1,7 @@
 import React, { PureComponent } from "react";
 import { connect } from "react-redux";
 import { Redirect } from "react-router-dom";
-import { getGames, joinGame, updateGame } from "../../actions/games";
+import { getGames, joinGame, updateGame, checkWord } from "../../actions/games";
 import { getUsers } from "../../actions/users";
 import { userId } from "../../jwt";
 import Paper from "@material-ui/core/Paper";
@@ -9,6 +9,10 @@ import "./GameDetails.css";
 import GameLayout from "./GameLayout";
 
 class GameDetails extends PureComponent {
+
+  state ={
+    guess: ''
+  }
   componentWillMount() {
     if (this.props.authenticated) {
       if (this.props.game === null) this.props.getGames();
@@ -40,9 +44,17 @@ class GameDetails extends PureComponent {
     }
   }
 
-  checkTheWord = () => {
-    const value = prompt(`What's the answer?`, 'Good luck!')
-    console.log(value)
+  onSubmit = event => {
+    event.preventDefault()
+    this.props.checkWord(this.props.game.id, this.state.guess)
+    this.setState({guess: ''})
+  }
+
+  onChange = (event) => {
+    console.log(event.target.value)
+    this.setState({
+      guess: event.target.value
+    })
   }
 
   render() {
@@ -84,7 +96,9 @@ class GameDetails extends PureComponent {
             users={this.props.users}
             alphabet={this.props.game.alphabet}
             selectChar={this.checkIfAnswerContainsLetter}
-            checkTheWord={this.checkTheWord}
+            onSubmit={this.onSubmit}
+            onChange={this.onChange}
+            value={this.state.guess}
           />
         )}
       </Paper>
@@ -103,7 +117,8 @@ const mapDispatchToProps = {
   getGames,
   getUsers,
   joinGame,
-  updateGame
+  updateGame,
+  checkWord
 };
 
 export default connect(

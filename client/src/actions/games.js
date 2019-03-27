@@ -81,3 +81,18 @@ export const updateGame = (gameId, switcher, template, alphabet) => (dispatch, g
     .then(_ => dispatch(updateGameSuccess()))
     .catch(err => console.error(err))
 }
+
+
+export const checkWord = (gameId, guess) => (dispatch, getState) => {
+  const state = getState()
+  const jwt = state.currentUser.jwt
+console.log('tut')
+  if (isExpired(jwt)) return dispatch(logout())
+
+  request
+    .patch(`${baseUrl}/games/${gameId}/check`)
+    .set('Authorization', `Bearer ${jwt}`)
+    .send({guess})
+    .then(_ => dispatch(updateGameSuccess()))
+    .catch(err => console.error(err))
+}

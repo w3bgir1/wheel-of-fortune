@@ -126,10 +126,9 @@ export default class GameController {
     return player;
   }
 
+
+
   @Authorized()
-  // the reason that we're using patch here is because this request is not idempotent
-  // http://restcookbook.com/HTTP%20Methods/idempotency/
-  // try to fire the same requests twice, see what happens
   @Patch("/games/:id([0-9]+)")
   async updateGame(
     @CurrentUser() user: User,
@@ -166,7 +165,6 @@ export default class GameController {
       game.status = "finished";
     }
 
-    console.log(update.switcher, update.template);
     game.template = update.template;
     game.alphabet = update.alphabet;
     await game.save();
@@ -190,4 +188,50 @@ export default class GameController {
   getGames() {
     return Game.find();
   }
+
+
+@Authorized()
+  @Patch("/games/:id([0-9]+)/check")
+  async checkWord(
+    @CurrentUser() user: User,
+    @Param("id") gameId: number,
+    @Body() guess: any) {
+      console.log('here')
+    const game = await Game.findOneById(gameId);
+
+    if (!game) throw new NotFoundError(`Game does not exist`);
+
+    const player = await Player.findOne({ user, game });
+
+    if (!player) {
+      throw new ForbiddenError(`You are not part of this game`);
+    }
+    if (game.status !== "started") {
+      throw new BadRequestError(`The game is not started yet`);
+    }
+
+    if (player.symbol !== game.turn) {
+      throw new BadRequestError(`It's not your turn`);
+    }
+
+    const winner = calculateWinner(guess.guess, game.answer);
+    
+    if (winner && player.symbol === game.turn) {
+      game.winner = player.symbol;
+      game.template = guess.guess;
+      game.status = "finished";
+    }
+    game.turn = player.symbol === "x" ? "o" : "x";
+
+   
+    await game.save();
+
+    io.emit("action", {
+      type: "UPDATE_GAME",
+      payload: game
+    });
+
+    return game;
+  }
+
 }
