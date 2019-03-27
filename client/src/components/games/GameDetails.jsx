@@ -38,7 +38,12 @@ class GameDetails extends PureComponent {
     } else {
       updateGame(game.id, true, newTemp.join(""), newAphabet);
     }
-  };
+  }
+
+  checkTheWord = () => {
+    const value = prompt(`What's the answer?`, 'Good luck!')
+    console.log(value)
+  }
 
   render() {
     const { game, users, authenticated, userId } = this.props;
@@ -79,6 +84,7 @@ class GameDetails extends PureComponent {
             users={this.props.users}
             alphabet={this.props.game.alphabet}
             selectChar={this.checkIfAnswerContainsLetter}
+            checkTheWord={this.checkTheWord}
           />
         )}
       </Paper>

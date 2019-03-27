@@ -2,6 +2,7 @@ import React from "react";
 import "./GameLayout.css";
 
 export default function GameLayout(props) {
+  console.log(props)
   return (
     <div className="game">
       {props.data && <h1>{props.data.question}</h1>}
@@ -25,14 +26,17 @@ export default function GameLayout(props) {
           src="https://avatarfiles.alphacoders.com/119/119303.jpg"
           alt="Player One"
         />
-        {props.users && <p>{props.users[1].firstName}</p>}
+        {props.users && <p>{props.users[props.data.players[0].userId].firstName}</p>}
       </div>
       <div className="game__playerTwo">
         <img
           src="https://avatarfiles.alphacoders.com/176/176259.jpg"
           alt="Player Two"
         />
-        {props.users && <p>{props.users[2].firstName}</p>}
+        {props.users && <p>{props.users[props.data.players[1].userId].firstName}</p>}
+      </div>
+      <div className='game__btns'>
+            <span onClick={props.checkTheWord} className="game__btn--know">I know the answer!</span>
       </div>
       <div className="game__alphabet" onClick={props.selectChar}>
         {props.alphabet.map(char => {
