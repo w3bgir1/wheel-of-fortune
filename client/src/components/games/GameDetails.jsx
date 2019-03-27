@@ -6,21 +6,9 @@ import { getUsers } from "../../actions/users";
 import { userId } from "../../jwt";
 import Paper from "@material-ui/core/Paper";
 import "./GameDetails.css";
-import { getQuestion } from "../../actions/questions.js";
 import GameLayout from "./GameLayout";
 
 class GameDetails extends PureComponent {
-  state = {
-    alphabet: [
-      "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
-    ],
-    answer: [],
-    usedLetters: []
-  };
-
-  componentDidMount() {
-    this.props.getQuestion();
-  }
 
   componentWillMount() {
     if (this.props.authenticated) {
@@ -31,40 +19,27 @@ class GameDetails extends PureComponent {
 
   joinGame = () => this.props.joinGame(this.props.game.id);
 
-  makeMove = (toRow, toCell) => {
-    const { game, updateGame } = this.props;
-
-    const board = game.board.map((row, rowIndex) =>
-      row.map((cell, cellIndex) => {
-        if (rowIndex === toRow && cellIndex === toCell) return game.turn;
-        else return cell;
-      })
-    );
-    updateGame(game.id, board);
-  };
-
 
 
   checkIfAnswerContainsLetter = (event) => {
+    const { game, updateGame } = this.props;
     const letter = event.target.textContent;
-    const newAphabet = this.state.alphabet.filter(el => el !== letter)
-    this.setState({
-      usedLetters: this.state.usedLetters.concat(letter),
-      alphabet: newAphabet
-    })
-    if (this.props.question.answer.includes(letter)) {
-      const indexes = this.props.question.answer.split('').reduce((acc, el, i) => {
+    let newTemp = game.template.split('')
+    const newAphabet = this.props.game.alphabet.filter(el => el !== letter)
+    if (this.props.game.answer.includes(letter)) {
+      const indexes = this.props.game.answer.split('').reduce((acc, el, i) => {
         if (el === letter) {
           return acc.concat(i)
         } 
         return acc
       }, [])
-
-      const newTemp = this.props.question.template
+    
       indexes.map(i => {
         newTemp[i] = letter
       })
-      this.props.question.template = newTemp
+      updateGame(game.id, false, newTemp.join(''), newAphabet)
+    } else {
+      updateGame(game.id, true, newTemp.join(''), newAphabet)
     }
   }
 
@@ -105,9 +80,9 @@ class GameDetails extends PureComponent {
 
         {game.status !== "pending" && (
           <GameLayout
-            data={this.props.question}
+            data={this.props.game}
             users={this.props.users}
-            alphabet={this.state.alphabet}
+            alphabet={this.props.game.alphabet}
             selectChar={this.checkIfAnswerContainsLetter}
           />
         )}
@@ -121,7 +96,6 @@ const mapStateToProps = (state, props) => ({
   userId: state.currentUser && userId(state.currentUser.jwt),
   game: state.games && state.games[props.match.params.id],
   users: state.users,
-  question: state.question
 });
 
 const mapDispatchToProps = {
@@ -129,7 +103,6 @@ const mapDispatchToProps = {
   getUsers,
   joinGame,
   updateGame,
-  getQuestion
 };
 
 export default connect(

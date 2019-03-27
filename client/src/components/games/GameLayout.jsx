@@ -5,7 +5,7 @@ export default function GameLayout(props) {
         return (
             <div className="game">
                 {props.data && <h1>{props.data.question}</h1>}
-                {props.data && props.data.template.map(char => 
+                {props.data && props.data.template.split('').map(char => 
                     char !== ' ' ?
                     <span className='game__answerLetters' key={Math.random()*100}>{char}</span> :
                     <span className='game__answerLetters game__answerLetters--empty' key={Math.random()*100}>{char}</span>

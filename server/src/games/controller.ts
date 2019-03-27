@@ -1,132 +1,168 @@
-import { 
-  JsonController, Authorized, CurrentUser, Post, Param, BadRequestError, HttpCode, NotFoundError, ForbiddenError, Get, 
-  Body, Patch 
-} from 'routing-controllers'
-import User from '../users/entity'
-import { Game, Player, Board } from './entities'
-import {IsBoard, isValidTransition, calculateWinner, finished} from './logic'
-import { Validate } from 'class-validator'
-import {io} from '../index'
+import {
+  JsonController,
+  Authorized,
+  CurrentUser,
+  Post,
+  Param,
+  BadRequestError,
+  HttpCode,
+  NotFoundError,
+  ForbiddenError,
+  Get,
+  Body,
+  Patch
+} from "routing-controllers";
+import User from "../users/entity";
+import { Game, Player } from "./entities";
+import { calculateWinner } from "./logic";
+import { io } from "../index";
+import * as request from "superagent";
 
-class GameUpdate {
+const alph = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
 
-  @Validate(IsBoard, {
-    message: 'Not a valid board'
-  })
-  board: Board
-}
+const getQuestion = (): any => {
+  return request
+    .get(
+      `https://opentdb.com/api.php?amount=1&difficulty=easy&type=multiple`
+    )
+    .then(result => {
+      const answ = result.body.results[0].correct_answer;
+      if (/^[a-zA-Z\s]+$/.test(answ) && answ.length < 13) {
+        let temp = answ.split("").map(char => (char === " " ? " " : "_")).join('');
+        return {
+          question: result.body.results[0].question,
+          answer: result.body.results[0].correct_answer.toUpperCase(),
+          template: temp
+        };
+      } else {
+        getQuestion();
+      }
+    })
+    .catch(err => console.error(err));
+};
 
 @JsonController()
 export default class GameController {
-
   @Authorized()
-  @Post('/games')
+  @Post("/games")
   @HttpCode(201)
-  async createGame(
-    @CurrentUser() user: User
-  ) {
-    const entity = await Game.create().save()
+  async createGame(@CurrentUser() user: User) {
+
+    const data = await getQuestion()
+     
+    const entity = await Game.create({
+      question: data.question,
+      answer: data.answer,
+      template: data.template,
+      alphabet: alph
+    }).save();
 
     await Player.create({
-      game: entity, 
+      game: entity,
       user,
-      symbol: 'x'
-    }).save()
+      symbol: "x"
+    }).save();
 
-    const game = await Game.findOneById(entity.id)
+    const game = await Game.findOneById(entity.id);
 
-    io.emit('action', {
-      type: 'ADD_GAME',
+    io.emit("action", {
+      type: "ADD_GAME",
       payload: game
-    })
+    });
 
-    return game
+    return game;
   }
 
   @Authorized()
-  @Post('/games/:id([0-9]+)/players')
+  @Post("/games/:id([0-9]+)/players")
   @HttpCode(201)
-  async joinGame(
-    @CurrentUser() user: User,
-    @Param('id') gameId: number
-  ) {
-    const game = await Game.findOneById(gameId)
-    if (!game) throw new BadRequestError(`Game does not exist`)
-    if (game.status !== 'pending') throw new BadRequestError(`Game is already started`)
+  async joinGame(@CurrentUser() user: User, @Param("id") gameId: number) {
+    const game = await Game.findOneById(gameId);
+    if (!game) throw new BadRequestError(`Game does not exist`);
+    if (game.status !== "pending")
+      throw new BadRequestError(`Game is already started`);
 
-    game.status = 'started'
-    await game.save()
+    game.status = "started";
+    await game.save();
 
     const player = await Player.create({
-      game, 
+      game,
       user,
-      symbol: 'o'
-    }).save()
+      symbol: "o"
+    }).save();
 
-    io.emit('action', {
-      type: 'UPDATE_GAME',
+    io.emit("action", {
+      type: "UPDATE_GAME",
       payload: await Game.findOneById(game.id)
-    })
+    });
 
-    return player
+    return player;
   }
 
   @Authorized()
   // the reason that we're using patch here is because this request is not idempotent
   // http://restcookbook.com/HTTP%20Methods/idempotency/
   // try to fire the same requests twice, see what happens
-  @Patch('/games/:id([0-9]+)')
+  @Patch("/games/:id([0-9]+)")
   async updateGame(
     @CurrentUser() user: User,
-    @Param('id') gameId: number,
-    @Body() update: GameUpdate
+    @Param("id") gameId: number,
+    @Body() update: { switcher: boolean; template: string; alphabet: string[]}
   ) {
-    const game = await Game.findOneById(gameId)
-    if (!game) throw new NotFoundError(`Game does not exist`)
+    const game = await Game.findOneById(gameId);
+    //console.log(game)
+    if (!game) throw new NotFoundError(`Game does not exist`);
 
-    const player = await Player.findOne({ user, game })
+    const player = await Player.findOne({ user, game });
+    //console.log(player)
 
-    if (!player) throw new ForbiddenError(`You are not part of this game`)
-    if (game.status !== 'started') throw new BadRequestError(`The game is not started yet`)
-    if (player.symbol !== game.turn) throw new BadRequestError(`It's not your turn`)
-    if (!isValidTransition(player.symbol, game.board, update.board)) {
-      throw new BadRequestError(`Invalid move`)
-    }    
+    if (!player) {
 
-    const winner = calculateWinner(update.board)
-    if (winner) {
-      game.winner = winner
-      game.status = 'finished'
+      throw new ForbiddenError(`You are not part of this game`)};
+    if (game.status !== "started") {
+      throw new BadRequestError(`The game is not started yet`);
     }
-    else if (finished(update.board)) {
-      game.status = 'finished'
+
+    if (player.symbol !== game.turn) {
+
+      throw new BadRequestError(`It's not your turn`);
     }
-    else {
-      game.turn = player.symbol === 'x' ? 'o' : 'x'
+
+    if (update.switcher) {
+      game.turn = player.symbol === "x" ? "o" : "x";
+    } else {
+      game.turn = player.symbol 
     }
-    game.board = update.board
-    await game.save()
-    
-    io.emit('action', {
-      type: 'UPDATE_GAME',
+      
+    const winner = calculateWinner(update.template, game.answer);
+    if (winner && player.symbol === game.turn) {
+      game.winner = player.symbol;
+      game.status = "finished";
+    }
+
+
+    console.log(update.switcher, update.template)
+    game.template = update.template
+    game.alphabet = update.alphabet
+    await game.save();
+
+    io.emit("action", {
+      type: "UPDATE_GAME",
       payload: game
-    })
+    });
 
-    return game
+    return game;
   }
 
   @Authorized()
-  @Get('/games/:id([0-9]+)')
-  getGame(
-    @Param('id') id: number
-  ) {
-    return Game.findOneById(id)
+  @Get("/games/:id([0-9]+)")
+  getGame(@Param("id") id: number) {
+    return Game.findOneById(id);
   }
 
   @Authorized()
-  @Get('/games')
+  @Get("/games")
   getGames() {
-    return Game.find()
+    return Game.find();
   }
 }
-
