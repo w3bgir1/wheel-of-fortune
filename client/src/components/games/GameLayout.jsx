@@ -43,7 +43,7 @@ export default function GameLayout(props) {
             </form>
       </div>
       <div className="game__alphabet" onClick={props.makeMove}>
-        {props.alphabet.map(char => {
+        {props.data.alphabet.map(char => {
           return (
             <span className="game__char" key={char}>
               {char}

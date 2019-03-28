@@ -52,6 +52,7 @@ const alph = [
   "Z"
 ];
 
+
 const getQuestion = (): any => {
   return request
     .get(`https://opentdb.com/api.php?amount=1&difficulty=easy&type=multiple`)
@@ -86,7 +87,8 @@ export default class GameController {
       question: data.question,
       answer: data.answer,
       template: data.template,
-      alphabet: alph
+      alphabet: alph,
+      round: 1
     }).save();
 
     await Player.create({
@@ -179,8 +181,19 @@ export default class GameController {
     const winner = calculateWinner(game.template, game.answer);
     if (winner && player.symbol === game.turn) {
       game.winner = player.symbol;
-      game.status = "finished";
-    }
+      game.round++;
+      const data = await getQuestion();
+
+      game.question = data.question;
+      game.answer = data.answer;
+      game.alphabet = alph;
+      game.template = data.template;
+      await game.save();
+      io.emit("action", {
+        type: "UPDATE_GAME",
+        payload: game
+      });
+
 
     game.alphabet = deleteFromAlphabet(data.letter, game.alphabet);
     await game.save();
@@ -191,6 +204,9 @@ export default class GameController {
     });
 
     return game;
+    }
+    return game
+    
   }
 
   @Authorized()

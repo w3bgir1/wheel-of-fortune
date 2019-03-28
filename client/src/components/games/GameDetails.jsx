@@ -79,7 +79,6 @@ class GameDetails extends PureComponent {
           <GameLayout
             data={this.props.game}
             users={this.props.users}
-            alphabet={this.props.game.alphabet}
             makeMove={this.makeMove}
             onSubmit={this.onSubmit}
             onChange={this.onChange}
