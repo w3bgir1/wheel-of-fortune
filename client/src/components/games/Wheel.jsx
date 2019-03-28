@@ -169,7 +169,7 @@ class Wheel extends React.Component {
     return (
       <div className="roulette">
         <div className="roulette-container">
-        <input type="button" value="spin" onClick={this.handleOnClick} className="button" id="spin" disabled={!this.props.btn}/>
+        <input type="button" value="Spin!" onClick={this.handleOnClick} className="button" id="spin" disabled={!this.props.btn}/>
           <canvas ref="canvas" width={baseSize * 2} height={baseSize * 2} className="roulette-canvas"></canvas>
         </div>
         <div className="roulette-container">

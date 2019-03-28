@@ -1,9 +1,7 @@
 .game__container {
-  margin-top: 20px;
-  margin: 0 auto;
-  padding: 20px;
-  width: 80%;
-  background-color: rgba(255, 255, 255, 0.8);
+  padding: 2rem;
+  position: relative;
+  width: 100%;
 }
 
 .game__alphabet {
@@ -20,5 +18,20 @@
   border: 1px solid #3498db;
   padding: 1rem;
   flex-basis: 1rem;
+}
+
+.game__header {
+  padding: 1rem;
+  display: flex;
+  width: 100%;
+  background-color: white;
+  top: 0;
+  margin-bottom: 2rem;
+  justify-content: space-evenly;
+  border-radius: 5px;
+}
+
+.game__turn {
+  text-decoration: underline #3498db;
 }
 

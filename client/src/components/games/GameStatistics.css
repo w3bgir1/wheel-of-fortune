@@ -9,15 +9,20 @@
   bottom: 0;
   margin: auto;
   background-color: rgba(0,0,0, 0.5);
+
 }
 
 .popup__inner {
+  font-family: 'Raleway', sans-serif;
   position: absolute;
+  padding: 1rem;
   left: 25%;
   right: 25%;
   top: 25%;
   bottom: 25%;
   margin: auto;
   background: white;
+  border-radius: 10px;
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, .2);
 }
 

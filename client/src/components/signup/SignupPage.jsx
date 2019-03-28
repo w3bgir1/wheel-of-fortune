@@ -10,7 +10,7 @@ class SignupPage extends PureComponent {
   render() {
     if (this.props.signup.success) return <Redirect to="/" />;
     return (
-      <div>
+      <div className='signup-form__container'>
         <h1>Sign up</h1>
         <SignupForm onSubmit={this.handleSubmit} />
         <p style={{ color: "red" }}>{this.props.signup.error}</p>
