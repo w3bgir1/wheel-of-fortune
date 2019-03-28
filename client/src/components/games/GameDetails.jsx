@@ -83,7 +83,7 @@ class GameDetails extends PureComponent {
             <button onClick={this.joinGame}>Join Game</button>
           )}
 
-        {winner && <p>Winner: {users[winner].firstName}</p>}
+        {winner && <p>Previous round winner: {users[winner].firstName}</p>}
 
         <hr />
 
