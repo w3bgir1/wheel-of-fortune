@@ -6,13 +6,18 @@ import { getUsers } from "../../actions/users";
 import { userId } from "../../jwt";
 import "./GameDetails.css";
 import GameLayout from "./GameLayout";
+import GameStatistics from "./GameStatistics";
+//import history from './history';
+
 
 class GameDetails extends PureComponent {
 
   state = {
     guess: '',
     mode: 0,
+    showPopup: false
     btn: true
+
   }
 
   componentWillMount = () => {
@@ -54,8 +59,10 @@ class GameDetails extends PureComponent {
   }
 
   onSpin = (text) => {
+
     this.setState({mode: text, btn:false})
 } 
+
 
   deactivateBtn = () => {
     const player = this.props.game.players.find(p => p.userId === this.props.userId);
@@ -65,7 +72,9 @@ class GameDetails extends PureComponent {
   }
 
   render() {
-    const { game, users, authenticated, userId } = this.props;
+
+    const { game, users, authenticated, userId, history } = this.props;
+
     if (!authenticated) return <Redirect to="/login" />;
 
     if (game === null || users === null) return "Loading...";
@@ -99,7 +108,7 @@ class GameDetails extends PureComponent {
             <button onClick={this.joinGame}>Join Game</button>
           )}
 
-        {winner && <p>Winner: {users[winner].firstName}</p>}
+        {winner && <p>Previous round winner: {users[winner].firstName}</p>}
 
         <hr />
 
@@ -126,7 +135,21 @@ class GameDetails extends PureComponent {
       </div>
       </div>
         )}
+  {game.status === "finished" ? 
+          <GameStatistics 
+          winner={winner} 
+          users={this.props.users}
+          players={this.props.game.players}
+          goToTheMainPage={this.goToTheMainPage}
+          history={this.props.history}
+          />
+          : 
+          null
+        }
+
       </div>
+
+        
     );
   }
 }
