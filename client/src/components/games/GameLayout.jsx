@@ -2,7 +2,7 @@ import React from "react";
 import "./GameLayout.css";
 
 export default function GameLayout(props) {
-  console.log(props)
+
   return (
     <div className="game">
       {props.data && <h1>{props.data.question}</h1>}
@@ -36,9 +36,13 @@ export default function GameLayout(props) {
         {props.users && <p>{props.users[props.data.players[1].userId].firstName}</p>}
       </div>
       <div className='game__btns'>
-            <span onClick={props.checkTheWord} className="game__btn--know">I know the answer!</span>
+            <span className="game__btn--know">I know the answer!</span>
+            <form onSubmit={props.onSubmit}>
+              <input type='text' name="word" onChange={props.onChange} value={props.value}></input>
+              <button type='submit'></button>
+            </form>
       </div>
-      <div className="game__alphabet" onClick={props.selectChar}>
+      <div className="game__alphabet" onClick={props.makeMove}>
         {props.data.alphabet.map(char => {
           return (
             <span className="game__char" key={char}>
