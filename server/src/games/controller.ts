@@ -172,7 +172,7 @@ export default class GameController {
     if (data.word) {
       const word = data.word.toUpperCase();
       const winnerWord = calculateWinner(word, game.answer);
-      if (winnerWord && player.symbol === game.turn && game.round !== 3) {
+      if (winnerWord && player.symbol === game.turn && game.round !== 4) {
         player.points = player.points + 500;
         game.winner = player.symbol;
         game.round++;
@@ -185,12 +185,13 @@ export default class GameController {
       } else {
         game.turn = player.symbol === "x" ? "o" : "x";
       }
+
     }
 
 
     const winner = calculateWinner(game.template, game.answer);
 
-    if (winner && player.symbol === game.turn && game.round !== 3) {
+    if (winner && player.symbol === game.turn && game.round !== 4) {
       player.points = player.points + 300;
       game.winner = player.symbol;
       game.round++;
@@ -199,6 +200,10 @@ export default class GameController {
       game.answer = data.answer;
       game.alphabet = alph;
       game.template = data.template;
+    }
+
+    if( game.round === 4) {
+      game.status = "finished";
     }
     await player.save();
 

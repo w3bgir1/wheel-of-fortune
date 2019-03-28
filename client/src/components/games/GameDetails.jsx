@@ -7,12 +7,16 @@ import { userId } from "../../jwt";
 import Paper from "@material-ui/core/Paper";
 import "./GameDetails.css";
 import GameLayout from "./GameLayout";
+import GameStatistics from "./GameStatistics";
+//import history from './history';
+
 
 class GameDetails extends PureComponent {
 
   state = {
     guess: '',
-    mode: 0
+    mode: 0,
+    showPopup: false
   }
   componentWillMount() {
     if (this.props.authenticated) {
@@ -45,10 +49,11 @@ class GameDetails extends PureComponent {
 
   onSpin = (text) => {
     this.setState({mode: text})
-} 
+  } 
+
 
   render() {
-    const { game, users, authenticated, userId } = this.props;
+    const { game, users, authenticated, userId, history } = this.props;
 
     if (!authenticated) return <Redirect to="/login" />;
 
@@ -93,6 +98,17 @@ class GameDetails extends PureComponent {
             onSpin={this.onSpin}
           />
         )}
+        {game.status === "finished" ? 
+          <GameStatistics 
+          winner={winner} 
+          users={this.props.users}
+          players={this.props.game.players}
+          goToTheMainPage={this.goToTheMainPage}
+          history={this.props.history}
+          />
+          : 
+          null
+        }
       </Paper>
     );
   }
