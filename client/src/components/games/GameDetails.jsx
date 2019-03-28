@@ -10,8 +10,9 @@ import GameLayout from "./GameLayout";
 
 class GameDetails extends PureComponent {
 
-  state ={
-    guess: ''
+  state = {
+    guess: '',
+    mode: 0
   }
   componentWillMount() {
     if (this.props.authenticated) {
@@ -41,6 +42,10 @@ class GameDetails extends PureComponent {
       guess: event.target.value
     })
   }
+
+  onSpin = (text) => {
+    this.setState({mode: text})
+} 
 
   render() {
     const { game, users, authenticated, userId } = this.props;
@@ -85,6 +90,7 @@ class GameDetails extends PureComponent {
             onSubmit={this.onSubmit}
             onChange={this.onChange}
             value={this.state.guess}
+            onSpin={this.onSpin}
           />
         )}
       </Paper>

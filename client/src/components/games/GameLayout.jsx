@@ -1,5 +1,6 @@
 import React from "react";
 import "./GameLayout.css";
+import Wheel from './Wheel'
 
 export default function GameLayout(props) {
 
@@ -42,6 +43,8 @@ export default function GameLayout(props) {
               <button type='submit'></button>
             </form>
       </div>
+      
+      <Wheel onSpin={props.onSpin} baseSize={150}/>
       <div className="game__alphabet" onClick={props.makeMove}>
         {props.data.alphabet.map(char => {
           return (
