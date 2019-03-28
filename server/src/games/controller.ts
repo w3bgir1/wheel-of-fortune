@@ -47,6 +47,7 @@ const alph = [
   "Z"
 ];
 
+
 const getQuestion = (): any => {
   return request
     .get(`https://opentdb.com/api.php?amount=1&difficulty=easy&type=multiple`)
@@ -180,7 +181,7 @@ export default class GameController {
     } else {
       game.template = update.template;
       game.alphabet = update.alphabet;
-    await game.save();
+      await game.save();
 
     io.emit("action", {
       type: "UPDATE_GAME",
