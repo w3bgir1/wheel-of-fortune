@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import './Wheel.css';
 
-const options = [0, 100, 200, 300, 500, 'x2'];
+const options = [0, 100, 200, 300, 500, 750];
 
 
 class Wheel extends React.Component {
@@ -169,7 +169,7 @@ class Wheel extends React.Component {
     return (
       <div className="roulette">
         <div className="roulette-container">
-        <input type="button" value="spin" onClick={this.handleOnClick} className="button" id="spin" />
+        <input type="button" value="spin" onClick={this.handleOnClick} className="button" id="spin" disabled={!this.props.btn}/>
           <canvas ref="canvas" width={baseSize * 2} height={baseSize * 2} className="roulette-canvas"></canvas>
         </div>
         <div className="roulette-container">

@@ -17,12 +17,23 @@ class GameDetails extends PureComponent {
     guess: '',
     mode: 0,
     showPopup: false
+    btn: true
+
   }
-  componentWillMount() {
+
+  componentWillMount = () => {
     if (this.props.authenticated) {
       if (this.props.game === null) this.props.getGames();
       if (this.props.users === null) this.props.getUsers();
     }
+  }
+
+  componentDidUpdate = (prevProps) => {
+  
+    if (this.props.game !== prevProps.game) {
+      this.setState({btn: true})
+    }
+    this.deactivateBtn()
   }
 
   joinGame = () => this.props.joinGame(this.props.game.id);
@@ -30,14 +41,15 @@ class GameDetails extends PureComponent {
   makeMove = event => {
 
     const letter = event.target.textContent;
-    this.props.updateGame(this.props.game.id, letter, '');
+    this.props.updateGame(this.props.game.id, letter, this.state.guess, this.state.mode);
+    this.setState({guess: '', mode: 0,  btn: true})
   
   }
 
   onSubmit = event => {
     event.preventDefault()
-    this.props.updateGame(this.props.game.id, '', this.state.guess);
-    this.setState({guess: ''})
+    this.props.updateGame(this.props.game.id, '', this.state.guess, this.state.mode);
+    this.setState({guess: '', mode: 0, btn: true})
   }
 
   onChange = (event) => {
@@ -48,11 +60,20 @@ class GameDetails extends PureComponent {
   }
 
   onSpin = (text) => {
-    this.setState({mode: text})
-  } 
 
+    this.setState({mode: text, btn:false})
+} 
+
+
+  deactivateBtn = () => {
+    const player = this.props.game.players.find(p => p.userId === this.props.userId);
+    if (player.symbol !== this.props.game.turn ) {
+      this.setState({btn: false})
+    }
+  }
 
   render() {
+
     const { game, users, authenticated, userId, history } = this.props;
 
     if (!authenticated) return <Redirect to="/login" />;
@@ -66,6 +87,9 @@ class GameDetails extends PureComponent {
       .filter(p => p.symbol === game.winner)
       .map(p => p.userId)[0];
 
+
+
+    this.deactivateBtn()
     return (
       <Paper className="outer-paper">
         <h1>Game #{game.id}</h1>
@@ -74,8 +98,9 @@ class GameDetails extends PureComponent {
         <p>Status: {game.status}</p>
         <p>Round: {game.round}</p>
 
-        {game.status === "started" && player && player.symbol === game.turn && (
+        { game.status === "started" && player && player.symbol === game.turn && (
           <div>It's your turn!</div>
+          
         )}
 
         {game.status === "pending" &&
@@ -96,7 +121,9 @@ class GameDetails extends PureComponent {
             onChange={this.onChange}
             value={this.state.guess}
             onSpin={this.onSpin}
+            btn={this.state.btn}
           />
+          
         )}
         {game.status === "finished" ? 
           <GameStatistics 

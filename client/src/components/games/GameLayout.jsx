@@ -46,7 +46,7 @@ export default function GameLayout(props) {
             </form>
       </div>
       
-      <Wheel onSpin={props.onSpin} baseSize={150}/>
+      <Wheel onSpin={props.onSpin} baseSize={150} btn={props.btn}/>
       <div className="game__alphabet" onClick={props.makeMove}>
         {props.data.alphabet.map(char => {
           return (
