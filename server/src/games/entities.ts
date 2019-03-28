@@ -44,9 +44,6 @@ export class Game extends BaseEntity {
   @Column()
   round: number
 
-  // @Column(number', {default: 1})
-  // round: Number
-
   @OneToMany(_ => Player, player => player.game, { eager: true })
   players: Player[];
 }

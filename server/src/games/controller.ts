@@ -52,7 +52,6 @@ const alph = [
   "Z"
 ];
 
-
 const getQuestion = (): any => {
   return request
     .get(`https://opentdb.com/api.php?amount=1&difficulty=easy&type=multiple`)
@@ -158,6 +157,7 @@ export default class GameController {
     }
 
     if (data.letter) {
+      game.alphabet = deleteFromAlphabet(data.letter, game.alphabet);
       if (!checkLetter(data.letter, game.answer)) {
         game.turn = player.symbol === "x" ? "o" : "x";
       } else {
@@ -167,35 +167,36 @@ export default class GameController {
     }
 
     if (data.word) {
-      const word = data.word.toUpperCase()
+      const word = data.word.toUpperCase();
       const winnerWord = calculateWinner(word, game.answer);
       if (winnerWord && player.symbol === game.turn) {
         game.winner = player.symbol;
-        game.template = game.answer;
-        game.status = "finished";
+        game.round++;
+
+        const data = await getQuestion();
+        game.question = data.question;
+        game.answer = data.answer;
+        game.alphabet = alph;
+        game.template = data.template;
       } else {
         game.turn = player.symbol === "x" ? "o" : "x";
       }
     }
 
+
     const winner = calculateWinner(game.template, game.answer);
+
     if (winner && player.symbol === game.turn) {
       game.winner = player.symbol;
       game.round++;
-      const data = await getQuestion();
 
+      const data = await getQuestion();
       game.question = data.question;
       game.answer = data.answer;
       game.alphabet = alph;
       game.template = data.template;
-      await game.save();
-      io.emit("action", {
-        type: "UPDATE_GAME",
-        payload: game
-      });
+    }
 
-
-    game.alphabet = deleteFromAlphabet(data.letter, game.alphabet);
     await game.save();
 
     io.emit("action", {
@@ -204,9 +205,6 @@ export default class GameController {
     });
 
     return game;
-    }
-    return game
-    
   }
 
   @Authorized()

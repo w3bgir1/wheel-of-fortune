@@ -60,7 +60,9 @@ class GameDetails extends PureComponent {
       <Paper className="outer-paper">
         <h1>Game #{game.id}</h1>
 
+
         <p>Status: {game.status}</p>
+        <p>Round: {game.round}</p>
 
         {game.status === "started" && player && player.symbol === game.turn && (
           <div>It's your turn!</div>
