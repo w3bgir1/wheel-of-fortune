@@ -9,6 +9,10 @@ import "./GameDetails.css";
 import GameLayout from "./GameLayout";
 
 class GameDetails extends PureComponent {
+
+  state ={
+    guess: ''
+  }
   componentWillMount() {
     if (this.props.authenticated) {
       if (this.props.game === null) this.props.getGames();
@@ -18,31 +22,24 @@ class GameDetails extends PureComponent {
 
   joinGame = () => this.props.joinGame(this.props.game.id);
 
-  checkIfAnswerContainsLetter = event => {
-    const { game, updateGame } = this.props;
-    const letter = event.target.textContent;
-    let newTemp = game.template.split("");
-    const newAphabet = this.props.game.alphabet.filter(el => el !== letter);
-    if (this.props.game.answer.includes(letter)) {
-      const indexes = this.props.game.answer.split("").reduce((acc, el, i) => {
-        if (el === letter) {
-          return acc.concat(i);
-        }
-        return acc;
-      }, []);
+  makeMove = event => {
 
-      indexes.map(i => {
-        newTemp[i] = letter;
-      });
-      updateGame(game.id, false, newTemp.join(""), newAphabet);
-    } else {
-      updateGame(game.id, true, newTemp.join(""), newAphabet);
-    }
+    const letter = event.target.textContent;
+    this.props.updateGame(this.props.game.id, letter, '');
+  
   }
 
-  checkTheWord = () => {
-    const value = prompt(`What's the answer?`, 'Good luck!')
-    console.log(value)
+  onSubmit = event => {
+    event.preventDefault()
+    this.props.updateGame(this.props.game.id, '', this.state.guess);
+    this.setState({guess: ''})
+  }
+
+  onChange = (event) => {
+    console.log(event.target.value)
+    this.setState({
+      guess: event.target.value
+    })
   }
 
   render() {
@@ -83,14 +80,18 @@ class GameDetails extends PureComponent {
             data={this.props.game}
             users={this.props.users}
             alphabet={this.props.game.alphabet}
-            selectChar={this.checkIfAnswerContainsLetter}
-            checkTheWord={this.checkTheWord}
+            makeMove={this.makeMove}
+            onSubmit={this.onSubmit}
+            onChange={this.onChange}
+            value={this.state.guess}
           />
         )}
       </Paper>
     );
   }
 }
+
+
 
 const mapStateToProps = (state, props) => ({
   authenticated: state.currentUser !== null,

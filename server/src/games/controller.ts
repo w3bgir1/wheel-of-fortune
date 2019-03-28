@@ -14,7 +14,12 @@ import {
 } from "routing-controllers";
 import User from "../users/entity";
 import { Game, Player } from "./entities";
-import { calculateWinner } from "./logic";
+import {
+  calculateWinner,
+  checkLetter,
+  deleteFromAlphabet,
+  updateTemplate
+} from "./logic";
 import { io } from "../index";
 import * as request from "superagent";
 
@@ -127,21 +132,17 @@ export default class GameController {
   }
 
   @Authorized()
-  // the reason that we're using patch here is because this request is not idempotent
-  // http://restcookbook.com/HTTP%20Methods/idempotency/
-  // try to fire the same requests twice, see what happens
   @Patch("/games/:id([0-9]+)")
   async updateGame(
     @CurrentUser() user: User,
     @Param("id") gameId: number,
-    @Body() update: { switcher: boolean; template: string; alphabet: string[] }
+    @Body() data: { letter: string; word: string }
   ) {
     const game = await Game.findOneById(gameId);
-    //console.log(game)
+
     if (!game) throw new NotFoundError(`Game does not exist`);
 
     const player = await Player.findOne({ user, game });
-    //console.log(player)
 
     if (!player) {
       throw new ForbiddenError(`You are not part of this game`);
@@ -154,21 +155,34 @@ export default class GameController {
       throw new BadRequestError(`It's not your turn`);
     }
 
-    if (update.switcher) {
-      game.turn = player.symbol === "x" ? "o" : "x";
-    } else {
-      game.turn = player.symbol;
+    if (data.letter) {
+      if (!checkLetter(data.letter, game.answer)) {
+        game.turn = player.symbol === "x" ? "o" : "x";
+      } else {
+        game.template = updateTemplate(data.letter, game.answer, game.template);
+        game.turn = player.symbol;
+      }
     }
 
-    const winner = calculateWinner(update.template, game.answer);
+    if (data.word) {
+      const word = data.word.toUpperCase()
+      const winnerWord = calculateWinner(word, game.answer);
+      if (winnerWord && player.symbol === game.turn) {
+        game.winner = player.symbol;
+        game.template = game.answer;
+        game.status = "finished";
+      } else {
+        game.turn = player.symbol === "x" ? "o" : "x";
+      }
+    }
+
+    const winner = calculateWinner(game.template, game.answer);
     if (winner && player.symbol === game.turn) {
       game.winner = player.symbol;
       game.status = "finished";
     }
 
-    console.log(update.switcher, update.template);
-    game.template = update.template;
-    game.alphabet = update.alphabet;
+    game.alphabet = deleteFromAlphabet(data.letter, game.alphabet);
     await game.save();
 
     io.emit("action", {
