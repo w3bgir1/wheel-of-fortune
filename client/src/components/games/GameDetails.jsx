@@ -4,7 +4,6 @@ import { Redirect } from "react-router-dom";
 import { getGames, joinGame, updateGame } from "../../actions/games";
 import { getUsers } from "../../actions/users";
 import { userId } from "../../jwt";
-import Paper from "@material-ui/core/Paper";
 import "./GameDetails.css";
 import GameLayout from "./GameLayout";
 import GameStatistics from "./GameStatistics";
@@ -87,11 +86,12 @@ class GameDetails extends PureComponent {
       .filter(p => p.symbol === game.winner)
       .map(p => p.userId)[0];
 
+      if (player) this.deactivateBtn()
 
-
-    this.deactivateBtn()
     return (
-      <Paper className="outer-paper">
+      <div className='game__container'>
+
+      
         <h1>Game #{game.id}</h1>
 
 
@@ -113,6 +113,7 @@ class GameDetails extends PureComponent {
         <hr />
 
         {game.status !== "pending" && (
+          <div>
           <GameLayout
             data={this.props.game}
             users={this.props.users}
@@ -123,9 +124,18 @@ class GameDetails extends PureComponent {
             onSpin={this.onSpin}
             btn={this.state.btn}
           />
-          
+          <div className="game__alphabet" onClick={this.makeMove}>
+        {this.props.game.alphabet.map(char => {
+          return (
+            <span className="game__char" key={char}>
+              {char}
+            </span>
+          );
+        })}
+      </div>
+      </div>
         )}
-        {game.status === "finished" ? 
+  {game.status === "finished" ? 
           <GameStatistics 
           winner={winner} 
           users={this.props.users}
@@ -136,7 +146,10 @@ class GameDetails extends PureComponent {
           : 
           null
         }
-      </Paper>
+
+      </div>
+
+        
     );
   }
 }
