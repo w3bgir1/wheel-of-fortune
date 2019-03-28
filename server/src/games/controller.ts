@@ -14,7 +14,12 @@ import {
 } from "routing-controllers";
 import User from "../users/entity";
 import { Game, Player } from "./entities";
-import { calculateWinner } from "./logic";
+import {
+  calculateWinner,
+  checkLetter,
+  deleteFromAlphabet,
+  updateTemplate
+} from "./logic";
 import { io } from "../index";
 import * as request from "superagent";
 
@@ -126,21 +131,18 @@ export default class GameController {
     return player;
   }
 
-
-
   @Authorized()
   @Patch("/games/:id([0-9]+)")
   async updateGame(
     @CurrentUser() user: User,
     @Param("id") gameId: number,
-    @Body() update: { switcher: boolean; template: string; alphabet: string[] }
+    @Body() data: { letter: string; word: string }
   ) {
     const game = await Game.findOneById(gameId);
-    //console.log(game)
+
     if (!game) throw new NotFoundError(`Game does not exist`);
 
     const player = await Player.findOne({ user, game });
-    //console.log(player)
 
     if (!player) {
       throw new ForbiddenError(`You are not part of this game`);
@@ -153,20 +155,34 @@ export default class GameController {
       throw new BadRequestError(`It's not your turn`);
     }
 
-    if (update.switcher) {
-      game.turn = player.symbol === "x" ? "o" : "x";
-    } else {
-      game.turn = player.symbol;
+    if (data.letter) {
+      if (!checkLetter(data.letter, game.answer)) {
+        game.turn = player.symbol === "x" ? "o" : "x";
+      } else {
+        game.template = updateTemplate(data.letter, game.answer, game.template);
+        game.turn = player.symbol;
+      }
     }
 
-    const winner = calculateWinner(update.template, game.answer);
+    if (data.word) {
+      const word = data.word.toUpperCase()
+      const winnerWord = calculateWinner(word, game.answer);
+      if (winnerWord && player.symbol === game.turn) {
+        game.winner = player.symbol;
+        game.template = game.answer;
+        game.status = "finished";
+      } else {
+        game.turn = player.symbol === "x" ? "o" : "x";
+      }
+    }
+
+    const winner = calculateWinner(game.template, game.answer);
     if (winner && player.symbol === game.turn) {
       game.winner = player.symbol;
       game.status = "finished";
     }
 
-    game.template = update.template;
-    game.alphabet = update.alphabet;
+    game.alphabet = deleteFromAlphabet(data.letter, game.alphabet);
     await game.save();
 
     io.emit("action", {
@@ -188,50 +204,4 @@ export default class GameController {
   getGames() {
     return Game.find();
   }
-
-
-@Authorized()
-  @Patch("/games/:id([0-9]+)/check")
-  async checkWord(
-    @CurrentUser() user: User,
-    @Param("id") gameId: number,
-    @Body() guess: any) {
-      console.log('here')
-    const game = await Game.findOneById(gameId);
-
-    if (!game) throw new NotFoundError(`Game does not exist`);
-
-    const player = await Player.findOne({ user, game });
-
-    if (!player) {
-      throw new ForbiddenError(`You are not part of this game`);
-    }
-    if (game.status !== "started") {
-      throw new BadRequestError(`The game is not started yet`);
-    }
-
-    if (player.symbol !== game.turn) {
-      throw new BadRequestError(`It's not your turn`);
-    }
-
-    const winner = calculateWinner(guess.guess, game.answer);
-    
-    if (winner && player.symbol === game.turn) {
-      game.winner = player.symbol;
-      game.template = guess.guess;
-      game.status = "finished";
-    }
-    game.turn = player.symbol === "x" ? "o" : "x";
-
-   
-    await game.save();
-
-    io.emit("action", {
-      type: "UPDATE_GAME",
-      payload: game
-    });
-
-    return game;
-  }
-
 }

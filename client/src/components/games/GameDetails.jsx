@@ -1,7 +1,7 @@
 import React, { PureComponent } from "react";
 import { connect } from "react-redux";
 import { Redirect } from "react-router-dom";
-import { getGames, joinGame, updateGame, checkWord } from "../../actions/games";
+import { getGames, joinGame, updateGame } from "../../actions/games";
 import { getUsers } from "../../actions/users";
 import { userId } from "../../jwt";
 import Paper from "@material-ui/core/Paper";
@@ -22,31 +22,16 @@ class GameDetails extends PureComponent {
 
   joinGame = () => this.props.joinGame(this.props.game.id);
 
-  checkIfAnswerContainsLetter = event => {
-    const { game, updateGame } = this.props;
-    const letter = event.target.textContent;
-    let newTemp = game.template.split("");
-    const newAphabet = this.props.game.alphabet.filter(el => el !== letter);
-    if (this.props.game.answer.includes(letter)) {
-      const indexes = this.props.game.answer.split("").reduce((acc, el, i) => {
-        if (el === letter) {
-          return acc.concat(i);
-        }
-        return acc;
-      }, []);
+  makeMove = event => {
 
-      indexes.map(i => {
-        newTemp[i] = letter;
-      });
-      updateGame(game.id, false, newTemp.join(""), newAphabet);
-    } else {
-      updateGame(game.id, true, newTemp.join(""), newAphabet);
-    }
+    const letter = event.target.textContent;
+    this.props.updateGame(this.props.game.id, letter, '');
+  
   }
 
   onSubmit = event => {
     event.preventDefault()
-    this.props.checkWord(this.props.game.id, this.state.guess)
+    this.props.updateGame(this.props.game.id, '', this.state.guess);
     this.setState({guess: ''})
   }
 
@@ -95,7 +80,7 @@ class GameDetails extends PureComponent {
             data={this.props.game}
             users={this.props.users}
             alphabet={this.props.game.alphabet}
-            selectChar={this.checkIfAnswerContainsLetter}
+            makeMove={this.makeMove}
             onSubmit={this.onSubmit}
             onChange={this.onChange}
             value={this.state.guess}
@@ -105,6 +90,8 @@ class GameDetails extends PureComponent {
     );
   }
 }
+
+
 
 const mapStateToProps = (state, props) => ({
   authenticated: state.currentUser !== null,
@@ -117,8 +104,7 @@ const mapDispatchToProps = {
   getGames,
   getUsers,
   joinGame,
-  updateGame,
-  checkWord
+  updateGame
 };
 
 export default connect(

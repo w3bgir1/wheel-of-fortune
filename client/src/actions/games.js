@@ -68,7 +68,7 @@ export const createGame = () => (dispatch, getState) => {
     .catch(err => console.error(err))
 }
 
-export const updateGame = (gameId, switcher, template, alphabet) => (dispatch, getState) => {
+export const updateGame = (gameId, letter, word) => (dispatch, getState) => {
   const state = getState()
   const jwt = state.currentUser.jwt
 
@@ -77,22 +77,7 @@ export const updateGame = (gameId, switcher, template, alphabet) => (dispatch, g
   request
     .patch(`${baseUrl}/games/${gameId}`)
     .set('Authorization', `Bearer ${jwt}`)
-    .send({ switcher, template, alphabet })
-    .then(_ => dispatch(updateGameSuccess()))
-    .catch(err => console.error(err))
-}
-
-
-export const checkWord = (gameId, guess) => (dispatch, getState) => {
-  const state = getState()
-  const jwt = state.currentUser.jwt
-console.log('tut')
-  if (isExpired(jwt)) return dispatch(logout())
-
-  request
-    .patch(`${baseUrl}/games/${gameId}/check`)
-    .set('Authorization', `Bearer ${jwt}`)
-    .send({guess})
+    .send({ letter, word })
     .then(_ => dispatch(updateGameSuccess()))
     .catch(err => console.error(err))
 }
