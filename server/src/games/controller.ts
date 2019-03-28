@@ -139,7 +139,7 @@ export default class GameController {
   async updateGame(
     @CurrentUser() user: User,
     @Param("id") gameId: number,
-    @Body() data: { letter: string; word: string }
+    @Body() data: { letter: string; word: string, mode: number }
   ) {
     const game = await Game.findOneById(gameId);
 
@@ -163,7 +163,7 @@ export default class GameController {
       if (!checkLetter(data.letter, game.answer)) {
         game.turn = player.symbol === "x" ? "o" : "x";
       } else {
-        player.points = player.points + 100;
+        player.points = player.points + data.mode;
         game.template = updateTemplate(data.letter, game.answer, game.template);
         game.turn = player.symbol;
       }
@@ -173,15 +173,15 @@ export default class GameController {
       const word = data.word.toUpperCase();
       const winnerWord = calculateWinner(word, game.answer);
       if (winnerWord && player.symbol === game.turn && game.round !== 3) {
-        player.points = player.points + 500;
+        player.points = player.points + 500 + data.mode;
         game.winner = player.symbol;
         game.round++;
 
-        const data = await getQuestion();
-        game.question = data.question;
-        game.answer = data.answer;
+        const newData = await getQuestion();
+        game.question = newData.question;
+        game.answer = newData.answer;
         game.alphabet = alph;
-        game.template = data.template;
+        game.template = newData.template;
       } else {
         game.turn = player.symbol === "x" ? "o" : "x";
       }
@@ -191,14 +191,14 @@ export default class GameController {
     const winner = calculateWinner(game.template, game.answer);
 
     if (winner && player.symbol === game.turn && game.round !== 3) {
-      player.points = player.points + 300;
+      player.points = player.points + data.mode + 300;
       game.winner = player.symbol;
       game.round++;
-      const data = await getQuestion();
-      game.question = data.question;
-      game.answer = data.answer;
-      game.alphabet = alph;
-      game.template = data.template;
+      const newData = await getQuestion();
+        game.question = newData.question;
+        game.answer = newData.answer;
+        game.alphabet = alph;
+        game.template = newData.template;
     }
     await player.save();
 
