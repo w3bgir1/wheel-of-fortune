@@ -15,7 +15,7 @@ class GameDetails extends PureComponent {
   state = {
     guess: '',
     mode: 0,
-    showPopup: false
+    showPopup: false,
     btn: true
 
   }
