@@ -1,33 +1,60 @@
+* {
+  box-sizing: border-box;
+}
+
 .game__answerLetters {
-    display: inline-block;
-    text-align: center;
-    border: 1px solid #3498db;
-    padding: 1em;
-    width: 1em;
+  display: inline-block;
+  text-align: center;
+  border: 1px solid #3498db;
+  padding: 1em;
+  width: 1em;
 }
 
 .game__answerLetters--empty {
-    border: 1px solid transparent;
+  border: 1px solid transparent;
 }
 
-.game__playerOne img, 
-.game__playerTwo img{
-    border-radius: 200px;
-    width: 100px;
+.game__playerOne img,
+.game__playerTwo img {
+  border-radius: 200px;
+  width: 100px;
 }
 
-.game__char {
-    display: inline-block;
-    text-align: center;
-    border: 1px solid #3498db;
-    padding: 1em;
-    width: 1em;
+.game {
+  width: 100%;
+  justify-content: center;
+  display: flex;
+  align-items: center;
 }
 
-.game__alphabet {
-    display: flex;
-    justify-content: center;
-    bottom: 0;
-    left: 0;
-    width: 100vw;
+.game__question {
+  width: 40%;
+  display: inline-block;
+  text-align: center;
+  padding: 1rem;
+}
+
+.game__playerOne,
+.game__playerTwo {
+  text-align: center;
+  width: 25%;
+  display: inline-block;
+  border: 1px solid black;
+  border-radius: 5px;
+  padding: 1em;
+}
+
+.game__wheel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  outline: none;
+  border: none;
+  padding: 1em;
+  border-radius: 3px;
 }
