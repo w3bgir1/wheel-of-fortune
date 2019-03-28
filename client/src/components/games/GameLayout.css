@@ -25,7 +25,6 @@
 }
 
 .game__alphabet {
-    position: fixed;
     display: flex;
     justify-content: center;
     bottom: 0;

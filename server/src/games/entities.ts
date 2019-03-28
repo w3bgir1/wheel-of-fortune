@@ -54,6 +54,11 @@ export class Player extends BaseEntity {
   @PrimaryGeneratedColumn()
   id?: number;
 
+  @IsNumber()
+  @Column()
+  points: number
+
+
   @ManyToOne(_ => User, user => user.players)
   user: User;
 
