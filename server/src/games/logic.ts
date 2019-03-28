@@ -22,3 +22,4 @@ export const updateTemplate = (letter: string, correctAnswer: string, template: 
   });
   return newTemp.join('')
 }
+

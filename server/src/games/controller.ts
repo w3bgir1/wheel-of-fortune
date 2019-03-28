@@ -93,7 +93,8 @@ export default class GameController {
     await Player.create({
       game: entity,
       user,
-      symbol: "x"
+      symbol: "x",
+      points: 0
     }).save();
 
     const game = await Game.findOneById(entity.id);
@@ -121,7 +122,8 @@ export default class GameController {
     const player = await Player.create({
       game,
       user,
-      symbol: "o"
+      symbol: "o",
+      points: 0
     }).save();
 
     io.emit("action", {
@@ -161,6 +163,7 @@ export default class GameController {
       if (!checkLetter(data.letter, game.answer)) {
         game.turn = player.symbol === "x" ? "o" : "x";
       } else {
+        player.points = player.points + 100;
         game.template = updateTemplate(data.letter, game.answer, game.template);
         game.turn = player.symbol;
       }
@@ -169,7 +172,8 @@ export default class GameController {
     if (data.word) {
       const word = data.word.toUpperCase();
       const winnerWord = calculateWinner(word, game.answer);
-      if (winnerWord && player.symbol === game.turn) {
+      if (winnerWord && player.symbol === game.turn && game.round !== 3) {
+        player.points = player.points + 500;
         game.winner = player.symbol;
         game.round++;
 
@@ -186,25 +190,30 @@ export default class GameController {
 
     const winner = calculateWinner(game.template, game.answer);
 
-    if (winner && player.symbol === game.turn) {
+    if (winner && player.symbol === game.turn && game.round !== 3) {
+      player.points = player.points + 300;
       game.winner = player.symbol;
       game.round++;
-
       const data = await getQuestion();
       game.question = data.question;
       game.answer = data.answer;
       game.alphabet = alph;
       game.template = data.template;
     }
+    await player.save();
 
     await game.save();
 
+    const newGame = await Game.findOneById(gameId);
+  
+
     io.emit("action", {
       type: "UPDATE_GAME",
-      payload: game
+      payload: newGame
     });
 
-    return game;
+
+    return {game, player};
   }
 
   @Authorized()

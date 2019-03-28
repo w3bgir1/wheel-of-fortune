@@ -27,6 +27,7 @@ export default function GameLayout(props) {
           alt="Player One"
         />
         {props.users && <p>{props.users[props.data.players[0].userId].firstName}</p>}
+        {props.users && <p> Points: {props.data.players[0].points}</p>}
       </div>
       <div className="game__playerTwo">
         <img
@@ -34,6 +35,7 @@ export default function GameLayout(props) {
           alt="Player Two"
         />
         {props.users && <p>{props.users[props.data.players[1].userId].firstName}</p>}
+        {props.users && <p> Points: {props.data.players[1].points}</p>}
       </div>
       <div className='game__btns'>
             <span className="game__btn--know">I know the answer!</span>
