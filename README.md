@@ -1,3 +1,3 @@
 # Multiplayer Wheel Of Fortune
 
-[TRY ME](https://wheeloffortune.heroku.com/)
+[TRY ME](https://wheeloffortune.herokuapp.com)
