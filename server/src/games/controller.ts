@@ -57,13 +57,14 @@ const getQuestion = (): any => {
     .get(`https://opentdb.com/api.php?amount=1&difficulty=easy&type=multiple`)
     .then(result => {
       const answ = result.body.results[0].correct_answer;
-      if (/^[a-zA-Z\s]+$/.test(answ) && answ.length < 13) {
+      const quest = decodeHTMLEntities(result.body.results[0].question)
+      if (/^[a-zA-Z\s]+$/.test(answ)) {
         let temp = answ
           .split("")
           .map(char => (char === " " ? " " : "_"))
           .join("");
         return {
-          question: result.body.results[0].question,
+          question: quest,
           answer: result.body.results[0].correct_answer.toUpperCase(),
           template: temp
         };
@@ -73,6 +74,27 @@ const getQuestion = (): any => {
     })
     .catch(err => console.error(err));
 };
+
+
+
+const decodeHTMLEntities = (text) => {
+  const entities = [
+      ['amp', '&'],
+      ['apos', '\''],
+      ['#x27', '\''],
+      ['#x2F', '/'],
+      ['#39', '\''],
+      ['#47', '/'],
+      ['lt', '<'],
+      ['gt', '>'],
+      ['nbsp', ' '],
+      ['quot', '"']
+  ];
+
+  for (let i = 0, max = entities.length; i < max; ++i) 
+      text = text.replace(new RegExp('&'+entities[i][0]+';', 'g'), entities[i][1]);
+  return text;
+}
 
 @JsonController()
 export default class GameController {

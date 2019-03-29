@@ -34,3 +34,8 @@
   border: none;
   background-color: #bdc3c7;
 }
+
+.button:disabled {
+  background-color: #bdc3c7;
+  border: 1px solid #95a5a6;
+}
