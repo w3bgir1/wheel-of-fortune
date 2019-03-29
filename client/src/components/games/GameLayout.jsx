@@ -3,6 +3,9 @@ import "./GameLayout.css";
 import Wheel from "./Wheel";
 
 export default function GameLayout(props) {
+  const playerX = props.data.players.find(p => p.symbol === 'x')
+  const playerO = props.data.players.find(p => p.symbol === 'o')
+  
   return (
     <div>
       <div className="game">
@@ -12,9 +15,9 @@ export default function GameLayout(props) {
             alt="Player One"
           />
           {props.users && (
-            <p>{props.users[props.data.players[0].userId].firstName}</p>
+            <p>{props.users[playerX.userId].firstName}</p>
           )}
-          {props.users && <p> Points: {props.data.players[0].points}</p>}
+          {props.users && <p> Points: {playerX.points}</p>}
         </div>
         <div className="game__question">
           {props.data && <h1>{props.data.question}</h1>}
@@ -57,9 +60,9 @@ export default function GameLayout(props) {
             alt="Player Two"
           />
           {props.users && (
-            <p>{props.users[props.data.players[1].userId].firstName}</p>
+            <p>{props.users[playerO.userId].firstName}</p>
           )}
-          {props.users && <p> Points: {props.data.players[1].points}</p>}
+          {props.users && <p> Points: {playerO.points}</p>}
         </div>
       </div>
       <div className="game__wheel">
