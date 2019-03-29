@@ -16,11 +16,11 @@
   font-family: 'Raleway', sans-serif;
   position: absolute;
   padding: 1rem;
-  left: 25%;
-  right: 25%;
+  left: 30%;
+  right: 30%;
   top: 25%;
   bottom: 25%;
-  margin: auto;
+  margin: 50px auto;
   background: white;
   border-radius: 10px;
   box-shadow: 0 1rem 2rem rgba(0, 0, 0, .2);
