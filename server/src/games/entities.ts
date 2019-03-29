@@ -7,6 +7,7 @@ import {
   OneToMany,
   ManyToOne
 } from "typeorm";
+import { IsNumber } from "class-validator";
 import User from "../users/entity";
 
 export type Symbol = "x" | "o";
@@ -39,8 +40,9 @@ export class Game extends BaseEntity {
   @Column({ type: "simple-array" })
   alphabet: string[];
 
-  // @Column(number', {default: 1})
-  // round: Number
+  @IsNumber()
+  @Column()
+  round: number
 
   @OneToMany(_ => Player, player => player.game, { eager: true })
   players: Player[];
@@ -51,6 +53,11 @@ export class Game extends BaseEntity {
 export class Player extends BaseEntity {
   @PrimaryGeneratedColumn()
   id?: number;
+
+  @IsNumber()
+  @Column()
+  points: number
+
 
   @ManyToOne(_ => User, user => user.players)
   user: User;

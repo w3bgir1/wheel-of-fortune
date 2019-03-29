@@ -1,6 +1,7 @@
 
 import React, {PureComponent} from 'react'
 
+
 export default class SignupForm extends PureComponent {
   state = {};
 
@@ -19,7 +20,7 @@ export default class SignupForm extends PureComponent {
 
   render() {
     return (
-      <form onSubmit={this.handleSubmit}>
+      <form onSubmit={this.handleSubmit} className="signup-form">
         <div>
           <label htmlFor="nickname">Nickname</label>
           <input

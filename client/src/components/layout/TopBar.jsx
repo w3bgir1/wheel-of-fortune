@@ -13,10 +13,10 @@ const TopBar = (props) => {
 
   return (
     <AppBar position="absolute" style={{zIndex:10}}>
-      <Toolbar>
-        <Typography variant="title" color="inherit" style={{flex: 1}}>
-          Multiplayer Tic Tac Toe
-        </Typography>
+      <Toolbar style={{margin:10}}>
+
+          <p className='header__title'>Wheel of Fortune</p>
+
         {
           user &&
           <Button color="inherit"><AccountIcon /> { user.firstName }</Button>

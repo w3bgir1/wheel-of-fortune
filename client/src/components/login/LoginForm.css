@@ -1,3 +1,20 @@
-.login-form label {
-  display: block;
+.login-form label{
+  padding: 1rem;
 }
+
+.login-form,
+.signup-form {
+  padding: 1rem;
+}
+
+.login__container,
+.signup-form__container {
+  width: 40%;
+  margin: 4rem auto;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, .2);
+}
+
+

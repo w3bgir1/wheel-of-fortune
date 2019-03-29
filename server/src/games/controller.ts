@@ -14,7 +14,12 @@ import {
 } from "routing-controllers";
 import User from "../users/entity";
 import { Game, Player } from "./entities";
-import { calculateWinner } from "./logic";
+import {
+  calculateWinner,
+  checkLetter,
+  deleteFromAlphabet,
+  updateTemplate
+} from "./logic";
 import { io } from "../index";
 import * as request from "superagent";
 
@@ -52,13 +57,14 @@ const getQuestion = (): any => {
     .get(`https://opentdb.com/api.php?amount=1&difficulty=easy&type=multiple`)
     .then(result => {
       const answ = result.body.results[0].correct_answer;
-      if (/^[a-zA-Z\s]+$/.test(answ) && answ.length < 13) {
+      const quest = decodeHTMLEntities(result.body.results[0].question)
+      if (/^[a-zA-Z\s]+$/.test(answ)) {
         let temp = answ
           .split("")
           .map(char => (char === " " ? " " : "_"))
           .join("");
         return {
-          question: result.body.results[0].question,
+          question: quest,
           answer: result.body.results[0].correct_answer.toUpperCase(),
           template: temp
         };
@@ -68,6 +74,27 @@ const getQuestion = (): any => {
     })
     .catch(err => console.error(err));
 };
+
+
+
+const decodeHTMLEntities = (text) => {
+  const entities = [
+      ['amp', '&'],
+      ['apos', '\''],
+      ['#x27', '\''],
+      ['#x2F', '/'],
+      ['#39', '\''],
+      ['#47', '/'],
+      ['lt', '<'],
+      ['gt', '>'],
+      ['nbsp', ' '],
+      ['quot', '"']
+  ];
+
+  for (let i = 0, max = entities.length; i < max; ++i) 
+      text = text.replace(new RegExp('&'+entities[i][0]+';', 'g'), entities[i][1]);
+  return text;
+}
 
 @JsonController()
 export default class GameController {
@@ -81,13 +108,15 @@ export default class GameController {
       question: data.question,
       answer: data.answer,
       template: data.template,
-      alphabet: alph
+      alphabet: alph,
+      round: 1
     }).save();
 
     await Player.create({
       game: entity,
       user,
-      symbol: "x"
+      symbol: "x",
+      points: 0
     }).save();
 
     const game = await Game.findOneById(entity.id);
@@ -115,7 +144,8 @@ export default class GameController {
     const player = await Player.create({
       game,
       user,
-      symbol: "o"
+      symbol: "o",
+      points: 0
     }).save();
 
     io.emit("action", {
@@ -127,21 +157,17 @@ export default class GameController {
   }
 
   @Authorized()
-  // the reason that we're using patch here is because this request is not idempotent
-  // http://restcookbook.com/HTTP%20Methods/idempotency/
-  // try to fire the same requests twice, see what happens
   @Patch("/games/:id([0-9]+)")
   async updateGame(
     @CurrentUser() user: User,
     @Param("id") gameId: number,
-    @Body() update: { switcher: boolean; template: string; alphabet: string[] }
+    @Body() data: { letter: string; word: string, mode: number }
   ) {
     const game = await Game.findOneById(gameId);
-    //console.log(game)
+
     if (!game) throw new NotFoundError(`Game does not exist`);
 
     const player = await Player.findOne({ user, game });
-    //console.log(player)
 
     if (!player) {
       throw new ForbiddenError(`You are not part of this game`);
@@ -154,29 +180,69 @@ export default class GameController {
       throw new BadRequestError(`It's not your turn`);
     }
 
-    if (update.switcher) {
-      game.turn = player.symbol === "x" ? "o" : "x";
-    } else {
-      game.turn = player.symbol;
+    if (data.letter) {
+      game.alphabet = deleteFromAlphabet(data.letter, game.alphabet);
+      if (!checkLetter(data.letter, game.answer)) {
+        game.turn = player.symbol === "x" ? "o" : "x";
+      } else {
+        player.points = player.points + data.mode;
+        game.template = updateTemplate(data.letter, game.answer, game.template);
+        game.turn = player.symbol;
+      }
     }
 
-    const winner = calculateWinner(update.template, game.answer);
-    if (winner && player.symbol === game.turn) {
+    if (data.word) {
+      const word = data.word.toUpperCase();
+      const winnerWord = calculateWinner(word, game.answer);
+      console.log(winnerWord)
+      if (winnerWord && player.symbol === game.turn && game.round !== 4) {
+        player.points = player.points + 500 + data.mode;
+        game.winner = player.symbol;
+        game.round++;
+
+        const newData = await getQuestion();
+        game.question = newData.question;
+        game.answer = newData.answer;
+        game.alphabet = alph;
+        game.template = newData.template;
+        console.log(newData)
+      } else {
+        game.turn = player.symbol === "x" ? "o" : "x";
+      }
+
+    }
+
+
+    const winner = calculateWinner(game.template, game.answer);
+
+    if (winner && player.symbol === game.turn && game.round !== 4) {
+      player.points = player.points + data.mode + 300;
       game.winner = player.symbol;
+      game.round++;
+      const newData = await getQuestion();
+        game.question = newData.question;
+        game.answer = newData.answer;
+        game.alphabet = alph;
+        game.template = newData.template;
+    }
+
+    if( game.round === 4) {
       game.status = "finished";
     }
+    await player.save();
 
-    console.log(update.switcher, update.template);
-    game.template = update.template;
-    game.alphabet = update.alphabet;
     await game.save();
+
+    const newGame = await Game.findOneById(gameId);
+  
 
     io.emit("action", {
       type: "UPDATE_GAME",
-      payload: game
+      payload: newGame
     });
 
-    return game;
+
+    return {game, player};
   }
 
   @Authorized()
