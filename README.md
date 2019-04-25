@@ -6,4 +6,4 @@ You need to spin the wheel every time before you guess the letter. Otherwise you
 
 The winner is the one who will get the most points after three rounds.
 
-[TRY ME](https://wheeloffortune.herokuapp.com)
+[TRY ME](https://wheeloffortune.netlify.com)
